@@ -56,6 +56,7 @@ class Routes {
     return Profiling.updatePassword(user, currentPassword, newPassword);
   }
 
+
   @Router.delete("/users")
   async deleteUser(session: SessionDoc) {
     const user = Sessioning.getUser(session);

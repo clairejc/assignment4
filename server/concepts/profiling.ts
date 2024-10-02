@@ -16,8 +16,7 @@ export interface ProfileDoc extends BaseDoc {
  * concept: Profile
  */
 
-
-export default class Profiling {
+export default class ProfilingConcept {
   public readonly profiles: DocCollection<ProfileDoc>;
 
     /**
