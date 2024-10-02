@@ -53,7 +53,10 @@ export default class Profiling {
       return { msg: "Profile deleted! "}
   }
 
-
+  async updateLocation(_id: ObjectId, newLocation: String){
+    await this.profiles.partialUpdateOne({ _id }, {location: newLocation});
+    return { msg: "Location updated succesfully"};
+  }
 
       
     

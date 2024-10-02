@@ -10,5 +10,5 @@ export const Sessioning = new SessioningConcept();
 export const Authing = new AuthenticatingConcept("users");
 export const Posting = new PostingConcept("posts");
 export const Friending = new FriendingConcept("friends");
-export const Profiling = new AuthenticatingConcept("profiles");
+export const Profiling = new ProfilingConcept("profiles");
 
