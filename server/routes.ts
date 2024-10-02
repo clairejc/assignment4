@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Authing, Friending, Posting, Sessioning } from "./app";
+import { Authing, Friending, Posting, Sessioning, Profiling } from "./app";
 import { PostOptions } from "./concepts/posting";
 import { SessionDoc } from "./concepts/sessioning";
 import Responses from "./responses";
@@ -33,9 +33,9 @@ class Routes {
   }
 
   @Router.post("/users")
-  async createUser(session: SessionDoc, username: string, password: string) {
+  async createUser(session: SessionDoc, username: string, password: string, name: string, phone: number) {
     Sessioning.isLoggedOut(session);
-    return await Authing.create(username, password);
+    return await Authing.create(username, password, name, phone);
   }
 
   @Router.patch("/users/username")
@@ -44,10 +44,16 @@ class Routes {
     return await Authing.updateUsername(user, username);
   }
 
-  @Router.patch("/users/password")
+  // @Router.patch("/users/password")
+  // async updatePassword(session: SessionDoc, currentPassword: string, newPassword: string) {
+  //   const user = Sessioning.getUser(session);
+  //   return Authing.updatePassword(user, currentPassword, newPassword);
+  // }
+
+  @Router.patch("/profiles/password")
   async updatePassword(session: SessionDoc, currentPassword: string, newPassword: string) {
     const user = Sessioning.getUser(session);
-    return Authing.updatePassword(user, currentPassword, newPassword);
+    return Profiling.updatePassword(user, currentPassword, newPassword);
   }
 
   @Router.delete("/users")

@@ -1,10 +1,13 @@
 import { ObjectId } from "mongodb";
 import DocCollection, { BaseDoc } from "../framework/doc";
 import { BadValuesError, NotAllowedError, NotFoundError } from "./errors";
+import  Profile from "./profiling";
 
 export interface UserDoc extends BaseDoc {
   username: string;
   password: string;
+  name: string;
+  phone: number;
 }
 
 /**
@@ -12,6 +15,7 @@ export interface UserDoc extends BaseDoc {
  */
 export default class AuthenticatingConcept {
   public readonly users: DocCollection<UserDoc>;
+  public readonly profile = new Profile("profiles");
 
   /**
    * Make an instance of Authenticating.
@@ -23,9 +27,11 @@ export default class AuthenticatingConcept {
     void this.users.collection.createIndex({ username: 1 });
   }
 
-  async create(username: string, password: string) {
-    await this.assertGoodCredentials(username, password);
-    const _id = await this.users.createOne({ username, password });
+  async create(username: string, password: string, name: string, phone: number) {
+    await this.assertGoodCredentials(username, password, name, phone);
+    console.log("hi")
+    const _id = await this.users.createOne({ username, password, name, phone });
+    await this.profile.create(_id, username, password, name, phone);
     return { msg: "User created successfully!", user: await this.users.readOne({ _id }) };
   }
 
@@ -105,9 +111,9 @@ export default class AuthenticatingConcept {
     }
   }
 
-  private async assertGoodCredentials(username: string, password: string) {
-    if (!username || !password) {
-      throw new BadValuesError("Username and password must be non-empty!");
+  private async assertGoodCredentials(username: string, password: string, name: string, phone: number) {
+    if (!username || !password || !name || !phone) {
+      throw new BadValuesError("Username, password, name, phone must be non-empty!");
     }
     await this.assertUsernameUnique(username);
   }
