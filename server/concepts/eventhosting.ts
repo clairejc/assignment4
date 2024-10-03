@@ -9,8 +9,8 @@ export interface EventHostDoc extends BaseDoc {
     description: string;
     date: number;
     spots: number;
-    signups: number;
-    waitlists: number;
+    signups: Array<ObjectId>;
+    waitlists: Array<ObjectId>;
     tags: Array<string>
 }
 
@@ -29,8 +29,8 @@ export default class EventHostingConcept {
 
   async create(organizer: ObjectId, title: string, description: string, date: number, spots: number, tags?: Array<string>) {
     await this.assertGoodFields(title, description, date, spots);
-    const signups = Array<ObjectId>;
-    const waitlists = Array<ObjectId>;
+    const signups = Array<ObjectId>();
+    const waitlists = Array<ObjectId>();
     const _id = await this.events.createOne({ organizer, title, description, date, spots, signups, waitlists, tags});
     return { msg: "Event successfully created!", event: await this.events.readOne({ _id }) };
   }
