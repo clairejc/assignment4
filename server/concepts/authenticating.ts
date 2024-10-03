@@ -1,13 +1,14 @@
 import { ObjectId } from "mongodb";
 import DocCollection, { BaseDoc } from "../framework/doc";
 import { BadValuesError, NotAllowedError, NotFoundError } from "./errors";
-import  Profile from "./profiling";
+import { Profiling } from "../app";
 
 export interface UserDoc extends BaseDoc {
   username: string;
   password: string;
   name: string;
   phone: number;
+  birthday: string;
 }
 
 /**
@@ -15,7 +16,6 @@ export interface UserDoc extends BaseDoc {
  */
 export default class AuthenticatingConcept {
   public readonly users: DocCollection<UserDoc>;
-  public readonly profile = new Profile("profiles");
 
   /**
    * Make an instance of Authenticating.
@@ -27,12 +27,11 @@ export default class AuthenticatingConcept {
     void this.users.collection.createIndex({ username: 1 });
   }
 
-  async create(username: string, password: string, name: string, phone: number) {
-    await this.assertGoodCredentials(username, password, name, phone);
-    console.log("hi")
-    const _id = await this.users.createOne({ username, password, name, phone });
-    await this.profile.create(_id, username, password, name, phone);
-    return { msg: "User created successfully!", user: await this.users.readOne({ _id }) };
+  async create(username: string, password: string, name: string, phone: number, birthday: string) {
+    await this.assertGoodCredentials(username, password, name, phone, birthday);
+    const _id = await this.users.createOne({ username, password, name, phone , birthday});
+    await Profiling.create(_id, username, password, name, phone, birthday);
+    return { msg: "User created successfully!", user: await this.users.readOne({ _id }), profile: await Profiling.profiles.readOne({ username:username }) };
   }
 
   private redactPassword(user: UserDoc): Omit<UserDoc, "password"> {
@@ -57,6 +56,13 @@ export default class AuthenticatingConcept {
     return this.redactPassword(user);
   }
 
+  async getIdByUser(username: string) {
+    const user = await this.users.readOne({username:username});
+    if (user === null) {
+      throw new NotFoundError(`User not found!`);
+    }
+    return user._id;
+  }
   async idsToUsernames(ids: ObjectId[]) {
     const users = await this.users.readMany({ _id: { $in: ids } });
 
@@ -73,16 +79,31 @@ export default class AuthenticatingConcept {
   }
 
   async authenticate(username: string, password: string) {
-    const user = await this.users.readOne({ username, password });
+    const user = await this.users.readOne({ username:username, password:password });
     if (!user) {
       throw new NotAllowedError("Username or password is incorrect.");
     }
     return { msg: "Successfully authenticated.", _id: user._id };
   }
 
-  async updateUsername(_id: ObjectId, username: string) {
+  async assertUserExists(_id: ObjectId) {
+    const maybeUser = await this.users.readOne({ _id });
+    if (maybeUser === null) {
+      throw new NotFoundError(`User not found!`);
+    }
+  }
+
+  private async assertGoodCredentials(username: string, password: string, name: string, phone: number, birthday: string) {
+    if (!username || !password || !name || !phone || !birthday) {
+      throw new BadValuesError("Username, password, name, phone must be non-empty!");
+    }
     await this.assertUsernameUnique(username);
-    await this.users.partialUpdateOne({ _id }, { username });
+  }
+
+  async updateUsername(userid: ObjectId, username: string) {
+
+    await this.assertUsernameUnique(username);
+    await this.users.partialUpdateOne({ _id:userid }, { username:username });
     return { msg: "Username updated successfully!" };
   }
 
@@ -102,20 +123,6 @@ export default class AuthenticatingConcept {
   async delete(_id: ObjectId) {
     await this.users.deleteOne({ _id });
     return { msg: "User deleted!" };
-  }
-
-  async assertUserExists(_id: ObjectId) {
-    const maybeUser = await this.users.readOne({ _id });
-    if (maybeUser === null) {
-      throw new NotFoundError(`User not found!`);
-    }
-  }
-
-  private async assertGoodCredentials(username: string, password: string, name: string, phone: number) {
-    if (!username || !password || !name || !phone) {
-      throw new BadValuesError("Username, password, name, phone must be non-empty!");
-    }
-    await this.assertUsernameUnique(username);
   }
 
   private async assertUsernameUnique(username: string) {

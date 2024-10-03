@@ -24,7 +24,7 @@ const operations: Operation[] = [
     name: "Create User",
     endpoint: "/api/users",
     method: "POST",
-    fields: { username: "input", password: "input", name: "input", phone: "input" },
+    fields: { username: "input", password: "input", name: "input", phone: "input", birthday: "input"},
   },
   {
     name: "Login",
@@ -38,48 +38,108 @@ const operations: Operation[] = [
     method: "POST",
     fields: {},
   },
+
   {
     name: "Update Password",
-    endpoint: "/api/users/password",
+    endpoint: "/api/profiles/password",
     method: "PATCH",
     fields: { currentPassword: "input", newPassword: "input" },
   },
+
+  {
+    name: "Update Username",
+    endpoint: "/api/profiles/username",
+    method: "PATCH",
+    fields: { username: "input" },
+  },
+
+  {
+    name: "Update Location: City, Country",
+    endpoint: "/api/profiles/location",
+    method: "PATCH",
+    fields: { newLocation: "input" },
+  },
+
+  {
+    name: "Update Language",
+    endpoint: "/api/profiles/language",
+    method: "PATCH",
+    fields: { newLanguage: "input" },
+  },
+
   {
     name: "Delete User",
-    endpoint: "/api/users",
+    endpoint: "/api/profiles",
     method: "DELETE",
     fields: {},
   },
+
+
   {
-    name: "Get Users (empty for all)",
-    endpoint: "/api/users/:username",
-    method: "GET",
-    fields: { username: "input" },
-  },
-  {
-    name: "Get Posts (empty for all)",
-    endpoint: "/api/posts",
-    method: "GET",
-    fields: { author: "input" },
-  },
-  {
-    name: "Create Post",
-    endpoint: "/api/posts",
+    name: "Create Event",
+    endpoint: "/api/eventhosts",
     method: "POST",
-    fields: { content: "input" },
+    fields: { title: "input", description: "input", date: "input", spots: "input"},
   },
+
+
   {
-    name: "Update Post",
-    endpoint: "/api/posts/:id",
+    name: "Update Event",
+    endpoint: "/api/eventhosts/:id",
     method: "PATCH",
-    fields: { id: "input", content: "input", options: { backgroundColor: "input" } },
+    fields: { id: "input", description: "input" },
   },
+
+  {
+    name: "Delete Event",
+    endpoint: "/api/eventhosts/:id",
+    method: "DELETE",
+    fields: { id: "input" },
+  },
+
+
+  {
+    name: "Get Events",
+    endpoint: "/api/eventhosts/",
+    method: "GET",
+    fields: { organizer: "input" },
+  },
+
+
   {
     name: "Delete Post",
     endpoint: "/api/posts/:id",
     method: "DELETE",
     fields: { id: "input" },
   },
+
+  {
+    name: "Create Post",
+    endpoint: "/api/posts",
+    method: "POST",
+    fields: { content: "input" },
+  },
+
+  // {
+  //   name: "Get Users (empty for all)",
+  //   endpoint: "/api/users/:username",
+  //   method: "GET",
+  //   fields: { username: "input" },
+  // },
+  // {
+  //   name: "Get Posts (empty for all)",
+  //   endpoint: "/api/posts",
+  //   method: "GET",
+  //   fields: { author: "input" },
+  // },
+  
+  {
+    name: "Update Post",
+    endpoint: "/api/posts/:id",
+    method: "PATCH",
+    fields: { id: "input", content: "input", options: { backgroundColor: "input" } },
+  },
+
   //
   // ...
   //

@@ -2,6 +2,7 @@ import { Authing } from "./app";
 import { AlreadyFriendsError, FriendNotFoundError, FriendRequestAlreadyExistsError, FriendRequestDoc, FriendRequestNotFoundError } from "./concepts/friending";
 import { PostAuthorNotMatchError, PostDoc } from "./concepts/posting";
 import { Router } from "./framework/router";
+import { EventHostDoc } from "./concepts/eventhosting"
 
 /**
  * This class does useful conversions for the frontend.
@@ -20,11 +21,30 @@ export default class Responses {
   }
 
   /**
+   * Convert EventHostingDoc into more readable format for the frontend by converting the author id into a username.
+   */
+  static async event(event: EventHostDoc | null) {
+    if (!event) {
+      return event;
+    }
+    const organizer = await Authing.getUserById(event.organizer);
+    return { ...event, organizer: organizer.username };
+  }
+
+  /**
    * Same as {@link post} but for an array of PostDoc for improved performance.
    */
   static async posts(posts: PostDoc[]) {
     const authors = await Authing.idsToUsernames(posts.map((post) => post.author));
     return posts.map((post, i) => ({ ...post, author: authors[i] }));
+  }
+
+  /**
+   * Same as {@link event} but for an array of EvenHostDoc for improved performance.
+   */
+  static async events(events: EventHostDoc[]) {
+    const organizers = await Authing.idsToUsernames(events.map((event) => event.organizer));
+    return events.map((event, i) => ({ ...event, organizer: organizers[i] }));
   }
 
   /**

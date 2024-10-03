@@ -28,6 +28,7 @@ export default class PostingConcept {
 
   async create(author: ObjectId, content: string, options?: PostOptions) {
     const _id = await this.posts.createOne({ author, content, options });
+    console.log("post creating")
     return { msg: "Post successfully created!", post: await this.posts.readOne({ _id }) };
   }
 

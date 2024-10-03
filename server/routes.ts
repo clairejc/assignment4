@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Authing, Friending, Posting, Sessioning, Profiling } from "./app";
+import { Authing, Friending, Posting, Sessioning, Profiling, EventHosting } from "./app";
 import { PostOptions } from "./concepts/posting";
 import { SessionDoc } from "./concepts/sessioning";
 import Responses from "./responses";
@@ -33,35 +33,9 @@ class Routes {
   }
 
   @Router.post("/users")
-  async createUser(session: SessionDoc, username: string, password: string, name: string, phone: number) {
+  async createUser(session: SessionDoc, username: string, password: string, name: string, phone: number, birthday: string) {
     Sessioning.isLoggedOut(session);
-    return await Authing.create(username, password, name, phone);
-  }
-
-  @Router.patch("/users/username")
-  async updateUsername(session: SessionDoc, username: string) {
-    const user = Sessioning.getUser(session);
-    return await Authing.updateUsername(user, username);
-  }
-
-  // @Router.patch("/users/password")
-  // async updatePassword(session: SessionDoc, currentPassword: string, newPassword: string) {
-  //   const user = Sessioning.getUser(session);
-  //   return Authing.updatePassword(user, currentPassword, newPassword);
-  // }
-
-  @Router.patch("/profiles/password")
-  async updatePassword(session: SessionDoc, currentPassword: string, newPassword: string) {
-    const user = Sessioning.getUser(session);
-    return Profiling.updatePassword(user, currentPassword, newPassword);
-  }
-
-
-  @Router.delete("/users")
-  async deleteUser(session: SessionDoc) {
-    const user = Sessioning.getUser(session);
-    Sessioning.end(session);
-    return await Authing.delete(user);
+    return await Authing.create(username, password, name, phone, birthday);
   }
 
   @Router.post("/login")
@@ -77,6 +51,88 @@ class Routes {
     return { msg: "Logged out!" };
   }
 
+
+//profiles:
+
+  @Router.patch("/profiles/username")
+  async updateUsername(session: SessionDoc, username: string) {
+    const user = Sessioning.getUser(session);
+    return await Profiling.updateUsername(user, username);
+  }
+
+  @Router.patch("/profiles/password")
+  async updatePassword(session: SessionDoc, currentPassword: string, newPassword: string) {
+    const user = Sessioning.getUser(session);
+    return Profiling.updatePassword(user, currentPassword, newPassword);
+  }
+
+  @Router.patch("/profiles/location")
+  async updateLocation(session: SessionDoc, newLocation: string) {
+    const user = Sessioning.getUser(session);
+    return Profiling.updateLocation(user, newLocation);
+  }
+
+  @Router.patch("/profiles/language")
+  async updateLanguage(session: SessionDoc, newLanguage: string) {
+    const user = Sessioning.getUser(session);
+    return Profiling.updateLanguage(user, newLanguage);
+  }
+
+  @Router.delete("/profiles")
+  async deleteUser(session: SessionDoc) {
+    const user = Sessioning.getUser(session);
+    Sessioning.end(session);
+    return await Profiling.delete(user);
+  }
+
+
+//eventhosts:
+
+  @Router.post("/eventhosts")
+  async createEvent(session: SessionDoc, title: string, description: string, date: number, spots: number) {
+    const user = Sessioning.getUser(session);
+    const created = await EventHosting.create(user, title, description, date, spots);
+    return { msg: created.msg, post: await Responses.event(created.event) };
+  }
+
+  @Router.delete("/eventhosts/:id")
+  //can only delete event if user is organizer of event
+  async deleteEvent(session: SessionDoc, id: string) {
+    const user = Sessioning.getUser(session);
+    const oid = new ObjectId(id);
+    await EventHosting.assertOrganizerIsUser(oid, user);
+    return EventHosting.delete(oid);
+  }
+
+  @Router.patch("/eventhosts/:id")
+  async updateEvent(session: SessionDoc, id: string, description: string) {
+    const user = Sessioning.getUser(session);
+    const oid = new ObjectId(id);
+    await EventHosting.assertOrganizerIsUser(oid, user);
+    return EventHosting.update(oid, description);
+  }
+
+  @Router.get("/eventhosts")
+  async getEvents(session: SessionDoc, organizer: string ) {
+    console.log("ji", organizer)
+    if (!organizer) {
+      return {msg: "Displaying all events", events: await EventHosting.getAllEvents()};
+    }
+    const userid = await Authing.getIdByUser(organizer);
+    const events = await EventHosting.getByOrganizer(userid);
+    return Responses.events(events);
+
+    // return Responses.events(events);
+  }
+  //posts
+
+  @Router.post("/posts")
+  async createPost(session: SessionDoc, content: string, options?: PostOptions) {
+    const user = Sessioning.getUser(session);
+    const created = await Posting.create(user, content, options);
+    return { msg: created.msg, post: await Responses.post(created.post) };
+  }
+
   @Router.get("/posts")
   @Router.validate(z.object({ author: z.string().optional() }))
   async getPosts(author?: string) {
@@ -88,13 +144,6 @@ class Routes {
       posts = await Posting.getPosts();
     }
     return Responses.posts(posts);
-  }
-
-  @Router.post("/posts")
-  async createPost(session: SessionDoc, content: string, options?: PostOptions) {
-    const user = Sessioning.getUser(session);
-    const created = await Posting.create(user, content, options);
-    return { msg: created.msg, post: await Responses.post(created.post) };
   }
 
   @Router.patch("/posts/:id")
