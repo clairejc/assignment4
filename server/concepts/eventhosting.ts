@@ -50,6 +50,7 @@ export default class EventHostingConcept {
   }
 
   async updateDescription(_id: ObjectId, newDescription: string) {
+    // Update event description
     await this.events.partialUpdateOne({ _id }, { description: newDescription });
     return { msg: "Event successfully updated!" };
   }
@@ -68,7 +69,7 @@ export default class EventHostingConcept {
   }
 
   async delete(_id: ObjectId) {
-    //delete event by
+    //delete event 
     await this.events.deleteOne({ _id });
     return { msg: "Post deleted successfully!" };
   }

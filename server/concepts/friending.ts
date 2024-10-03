@@ -74,7 +74,7 @@ export default class FriendingConcept {
     const friendships = await this.friends.readMany({
       $or: [{ user1: user }, { user2: user }],
     });
-    // Making sure to compare ObjectId using toString()
+    // Making sure to compare ObjectId using tostring()
     return friendships.map((friendship) => (friendship.user1.toString() === user.toString() ? friendship.user2 : friendship.user1));
   }
 

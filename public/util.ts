@@ -54,7 +54,7 @@ const operations: Operation[] = [
   },
 
   {
-    name: "Update Location: City, Country",
+    name: "Update Location: City, State",
     endpoint: "/api/profiles/location",
     method: "PATCH",
     fields: { newLocation: "input" },
@@ -79,7 +79,7 @@ const operations: Operation[] = [
     name: "Create Event",
     endpoint: "/api/eventhosts",
     method: "POST",
-    fields: { title: "input", description: "input", date: "input", spots: "input"},
+    fields: { title: "input", description: "input", date: "input", spots: "input", tags: "input"},
   },
 
 
