@@ -99,12 +99,21 @@ const operations: Operation[] = [
 
 
   {
-    name: "Get Events",
+    name: "Get Events (empty for all)",
     endpoint: "/api/eventhosts/",
     method: "GET",
     fields: { organizer: "input" },
   },
 
+  {
+    name: "Add Event Tags",
+    endpoint: "/api/eventhosts/tags/:id",
+    method: "PATCH",
+    fields: { id: "input", tags: "input"},
+  },
+
+
+  // posts (previously included)
 
   {
     name: "Delete Post",
@@ -120,18 +129,18 @@ const operations: Operation[] = [
     fields: { content: "input" },
   },
 
-  // {
-  //   name: "Get Users (empty for all)",
-  //   endpoint: "/api/users/:username",
-  //   method: "GET",
-  //   fields: { username: "input" },
-  // },
-  // {
-  //   name: "Get Posts (empty for all)",
-  //   endpoint: "/api/posts",
-  //   method: "GET",
-  //   fields: { author: "input" },
-  // },
+  {
+    name: "Get Users (empty for all)",
+    endpoint: "/api/users/:username",
+    method: "GET",
+    fields: { username: "input" },
+  },
+  {
+    name: "Get Posts (empty for all)",
+    endpoint: "/api/posts",
+    method: "GET",
+    fields: { author: "input" },
+  },
   
   {
     name: "Update Post",

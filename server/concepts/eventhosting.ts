@@ -11,7 +11,7 @@ export interface EventHostDoc extends BaseDoc {
     spots: number;
     signups: Array<ObjectId>;
     waitlists: Array<ObjectId>;
-    tags: Array<string>
+    tags: string
 }
 
 /**
@@ -27,7 +27,7 @@ export default class EventHostingConcept {
     this.events = new DocCollection<EventHostDoc>(collectionName);
   }
 
-  async create(organizer: ObjectId, title: string, description: string, date: number, spots: number, tags?: Array<string>) {
+  async create(organizer: ObjectId, title: string, description: string, date: number, spots: number, tags?: string) {
     await this.assertGoodFields(title, description, date, spots);
     const signups = Array<ObjectId>();
     const waitlists = Array<ObjectId>();
@@ -49,11 +49,6 @@ export default class EventHostingConcept {
     return await this.events.readMany({ organizer:organizer });
   }
 
-  async updateDescription(_id: ObjectId, newDescription: string) {
-    // Update event description
-    await this.events.partialUpdateOne({ _id }, { description: newDescription });
-    return { msg: "Event successfully updated!" };
-  }
 
   private async assertGoodFields(title: string, description: string, date: number, spots: number) {
     if (!title || !description || !date || !spots) {
@@ -66,6 +61,16 @@ export default class EventHostingConcept {
     if (await this.events.readOne({ title })) {
       throw new NotAllowedError(`Event with title ${title} already exists!`);
     }
+  }
+
+  async addTags(_id: ObjectId, tags: string) {
+    //organizer add tags to event
+    const event = await this.events.readOne({ _id });
+    const newtags = event?.tags + ", " + tags;
+    console.log(newtags);
+    await this.events.partialUpdateOne({ _id }, {tags:newtags});
+    return {  msg: "Tags succesfully updated"}
+
   }
 
   async delete(_id: ObjectId) {
@@ -83,6 +88,7 @@ export default class EventHostingConcept {
       throw new EventOrganizerNotMatchError(user, _id);
     }
   }
+
 }
 
 export class EventOrganizerNotMatchError extends NotAllowedError {

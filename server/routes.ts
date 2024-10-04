@@ -53,7 +53,6 @@ class Routes {
     return { msg: "Logged out!" };
   }
 
-
   //profiles:
 
   @Router.patch("/profiles/username")
@@ -87,13 +86,12 @@ class Routes {
     return await Profiling.delete(user);
   }
 
-
   //eventhosts:
 
   @Router.post("/eventhosts")
-  async createEvent(session: SessionDoc, title: string, description: string, date: number, spots: number) {
+  async createEvent(session: SessionDoc, title: string, description: string, date: number, spots: number, tags?: string) {
     const user = Sessioning.getUser(session);
-    const created = await EventHosting.create(user, title, description, date, spots);
+    const created = await EventHosting.create(user, title, description, date, spots, tags);
     return { msg: created.msg, post: await Responses.event(created.event) };
   }
 
@@ -111,11 +109,12 @@ class Routes {
     const user = Sessioning.getUser(session);
     const oid = new ObjectId(id);
     await EventHosting.assertOrganizerIsUser(oid, user);
+    console.log("updateevent")
     return EventHosting.update(oid, description);
   }
 
   @Router.get("/eventhosts")
-  async getEvents(session: SessionDoc, organizer: string ) {
+  async getEvents(organizer: string ) {
     if (!organizer) {
       return {msg: "Displaying all events", events: await EventHosting.getAllEvents()};
     }
@@ -124,6 +123,14 @@ class Routes {
     return Responses.events(events);
   }
 
+  @Router.patch("/eventhosts/tags/:id")
+  async addEventTags(session: SessionDoc, id: string, tags: string) {
+    const user = Sessioning.getUser(session);
+    const oid = new ObjectId(id);
+    await EventHosting.assertOrganizerIsUser(oid, user);
+    console.log("hiii")
+    return EventHosting.addTags(oid, tags);
+  }
 
   //eventviews
 
@@ -167,7 +174,8 @@ class Routes {
 
   }
 
-  //instruction's actions are static and can be included on the page
+  //instruction's actions are static and unchangeable, so they don't need to be recorded outside of a session
+  //and can be included on the page
   
   // friendshiphub
   @Router.post("/friendshiphub/profile")
@@ -198,8 +206,36 @@ class Routes {
     
   }
 
-  // settings actions are static and can be included on the page 
+  // settings 
+  @Router.patch("/users/settings/brightness")
+  async adjustBrightness(session: SessionDoc, level: number){
 
+  }
+
+  @Router.patch("/users/settings/contrast")
+  async adjustContrast(session: SessionDoc, level: number){
+
+  }
+
+  @Router.patch("/users/settings/instruction")
+  async toggleInstruction(session: SessionDoc){
+
+  }
+
+  @Router.patch("/users/settings/textsize")
+  async adjustTextSize(session: SessionDoc, level: number){
+
+  }
+
+  @Router.patch("/users/settings/textread")
+  async toggleTextRead(session: SessionDoc){
+
+  }
+
+  @Router.patch("/users/settings")
+  async resetSettings(session: SessionDoc) {
+
+  }
 
   //directmessages
   @Router.patch("/users/directmessages/message")
@@ -217,100 +253,91 @@ class Routes {
 
   }
 
-
-
-
-
-
-
-  
-
-
-
+  //originally existing routes
   //posts
 
-  // @Router.post("/posts")
-  // async createPost(session: SessionDoc, content: string, options?: PostOptions) {
-  //   const user = Sessioning.getUser(session);
-  //   const created = await Posting.create(user, content, options);
-  //   return { msg: created.msg, post: await Responses.post(created.post) };
-  // }
+  @Router.post("/posts")
+  async createPost(session: SessionDoc, content: string, options?: PostOptions) {
+    const user = Sessioning.getUser(session);
+    const created = await Posting.create(user, content, options);
+    return { msg: created.msg, post: await Responses.post(created.post) };
+  }
 
-  // @Router.get("/posts")
-  // @Router.validate(z.object({ author: z.string().optional() }))
-  // async getPosts(author?: string) {
-  //   let posts;
-  //   if (author) {
-  //     const id = (await Authing.getUserByUsername(author))._id;
-  //     posts = await Posting.getByAuthor(id);
-  //   } else {
-  //     posts = await Posting.getPosts();
-  //   }
-  //   return Responses.posts(posts);
-  // }
+  @Router.get("/posts")
+  @Router.validate(z.object({ author: z.string().optional() }))
+  async getPosts(author?: string) {
+    let posts;
+    if (author) {
+      const id = (await Authing.getUserByUsername(author))._id;
+      posts = await Posting.getByAuthor(id);
+    } else {
+      posts = await Posting.getPosts();
+    }
+    return Responses.posts(posts);
+  }
 
-  // @Router.patch("/posts/:id")
-  // async updatePost(session: SessionDoc, id: string, content?: string, options?: PostOptions) {
-  //   const user = Sessioning.getUser(session);
-  //   const oid = new ObjectId(id);
-  //   await Posting.assertAuthorIsUser(oid, user);
-  //   return await Posting.update(oid, content, options);
-  // }
+  @Router.patch("/posts/:id")
+  async updatePost(session: SessionDoc, id: string, content?: string, options?: PostOptions) {
+    const user = Sessioning.getUser(session);
+    const oid = new ObjectId(id);
+    await Posting.assertAuthorIsUser(oid, user);
+    return await Posting.update(oid, content, options);
+  }
 
-  // @Router.delete("/posts/:id")
-  // async deletePost(session: SessionDoc, id: string) {
-  //   const user = Sessioning.getUser(session);
-  //   const oid = new ObjectId(id);
-  //   await Posting.assertAuthorIsUser(oid, user);
-  //   return Posting.delete(oid);
-  // }
+  @Router.delete("/posts/:id")
+  async deletePost(session: SessionDoc, id: string) {
+    const user = Sessioning.getUser(session);
+    const oid = new ObjectId(id);
+    await Posting.assertAuthorIsUser(oid, user);
+    return Posting.delete(oid);
+  }
 
-  // @Router.get("/friends")
-  // async getFriends(session: SessionDoc) {
-  //   const user = Sessioning.getUser(session);
-  //   return await Authing.idsToUsernames(await Friending.getFriends(user));
-  // }
+  @Router.get("/friends")
+  async getFriends(session: SessionDoc) {
+    const user = Sessioning.getUser(session);
+    return await Authing.idsToUsernames(await Friending.getFriends(user));
+  }
 
-  // @Router.delete("/friends/:friend")
-  // async removeFriend(session: SessionDoc, friend: string) {
-  //   const user = Sessioning.getUser(session);
-  //   const friendOid = (await Authing.getUserByUsername(friend))._id;
-  //   return await Friending.removeFriend(user, friendOid);
-  // }
+  @Router.delete("/friends/:friend")
+  async removeFriend(session: SessionDoc, friend: string) {
+    const user = Sessioning.getUser(session);
+    const friendOid = (await Authing.getUserByUsername(friend))._id;
+    return await Friending.removeFriend(user, friendOid);
+  }
 
-  // @Router.get("/friend/requests")
-  // async getRequests(session: SessionDoc) {
-  //   const user = Sessioning.getUser(session);
-  //   return await Responses.friendRequests(await Friending.getRequests(user));
-  // }
+  @Router.get("/friend/requests")
+  async getRequests(session: SessionDoc) {
+    const user = Sessioning.getUser(session);
+    return await Responses.friendRequests(await Friending.getRequests(user));
+  }
 
-  // @Router.post("/friend/requests/:to")
-  // async sendFriendRequest(session: SessionDoc, to: string) {
-  //   const user = Sessioning.getUser(session);
-  //   const toOid = (await Authing.getUserByUsername(to))._id;
-  //   return await Friending.sendRequest(user, toOid);
-  // }
+  @Router.post("/friend/requests/:to")
+  async sendFriendRequest(session: SessionDoc, to: string) {
+    const user = Sessioning.getUser(session);
+    const toOid = (await Authing.getUserByUsername(to))._id;
+    return await Friending.sendRequest(user, toOid);
+  }
 
-  // @Router.delete("/friend/requests/:to")
-  // async removeFriendRequest(session: SessionDoc, to: string) {
-  //   const user = Sessioning.getUser(session);
-  //   const toOid = (await Authing.getUserByUsername(to))._id;
-  //   return await Friending.removeRequest(user, toOid);
-  // }
+  @Router.delete("/friend/requests/:to")
+  async removeFriendRequest(session: SessionDoc, to: string) {
+    const user = Sessioning.getUser(session);
+    const toOid = (await Authing.getUserByUsername(to))._id;
+    return await Friending.removeRequest(user, toOid);
+  }
 
-  // @Router.put("/friend/accept/:from")
-  // async acceptFriendRequest(session: SessionDoc, from: string) {
-  //   const user = Sessioning.getUser(session);
-  //   const fromOid = (await Authing.getUserByUsername(from))._id;
-  //   return await Friending.acceptRequest(fromOid, user);
-  // }
+  @Router.put("/friend/accept/:from")
+  async acceptFriendRequest(session: SessionDoc, from: string) {
+    const user = Sessioning.getUser(session);
+    const fromOid = (await Authing.getUserByUsername(from))._id;
+    return await Friending.acceptRequest(fromOid, user);
+  }
 
-  // @Router.put("/friend/reject/:from")
-  // async rejectFriendRequest(session: SessionDoc, from: string) {
-  //   const user = Sessioning.getUser(session);
-  //   const fromOid = (await Authing.getUserByUsername(from))._id;
-  //   return await Friending.rejectRequest(fromOid, user);
-  // }
+  @Router.put("/friend/reject/:from")
+  async rejectFriendRequest(session: SessionDoc, from: string) {
+    const user = Sessioning.getUser(session);
+    const fromOid = (await Authing.getUserByUsername(from))._id;
+    return await Friending.rejectRequest(fromOid, user);
+  }
 
 
 
