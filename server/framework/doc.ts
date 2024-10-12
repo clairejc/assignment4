@@ -150,7 +150,10 @@ export default class DocCollection<Schema extends BaseDoc> {
     return one;
   }
 
+
   /*
    * You may wish to add more methods, e.g. using other MongoDB operations!
    */
+
+
 }

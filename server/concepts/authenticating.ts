@@ -1,14 +1,14 @@
 import { ObjectId } from "mongodb";
 import DocCollection, { BaseDoc } from "../framework/doc";
 import { BadValuesError, NotAllowedError, NotFoundError } from "./errors";
-import { Profiling } from "../app";
+import { Profiling, Setting } from "../app";
 
 export interface UserDoc extends BaseDoc {
   username: string;
   password: string;
   name: string;
   phone: number;
-  birthday: string;
+  age: number;
 }
 
 /**
@@ -27,10 +27,11 @@ export default class AuthenticatingConcept {
     void this.users.collection.createIndex({ username: 1 });
   }
 
-  async create(username: string, password: string, name: string, phone: number, birthday: string) {
-    await this.assertGoodCredentials(username, password, name, phone, birthday);
-    const _id = await this.users.createOne({ username, password, name, phone , birthday});
-    await Profiling.create(_id, username, password, name, phone, birthday);
+  async create(username: string, password: string, name: string, phone: number, age: number) {
+    await this.assertGoodCredentials(username, password, name, phone, age);
+    const _id = await this.users.createOne({ username, password, name, phone , age});
+    await Profiling.create(_id, username, password, name, phone, age);
+    await Setting.create(_id);
     return { msg: "User created successfully!", user: await this.users.readOne({ _id }), profile: await Profiling.profiles.readOne({ username:username }) };
   }
 
@@ -63,6 +64,15 @@ export default class AuthenticatingConcept {
     }
     return user._id;
   }
+
+  async getUsernameById(_id: ObjectId) {
+    const user = await this.users.readOne({ _id });
+    if (user === null) {
+      throw new NotFoundError(`User not found!`);
+    }
+    return user.username;
+  }
+
   async idsToUsernames(ids: ObjectId[]) {
     const users = await this.users.readMany({ _id: { $in: ids } });
 
@@ -93,17 +103,16 @@ export default class AuthenticatingConcept {
     }
   }
 
-  private async assertGoodCredentials(username: string, password: string, name: string, phone: number, birthday: string) {
-    if (!username || !password || !name || !phone || !birthday) {
+  private async assertGoodCredentials(username: string, password: string, name: string, phone: number, age: number) {
+    if (!username || !password || !name || !phone || !age) {
       throw new BadValuesError("Username, password, name, phone must be non-empty!");
     }
     await this.assertUsernameUnique(username);
   }
 
-  async updateUsername(userid: ObjectId, username: string) {
-
+  async updateUsername(_id: ObjectId, username: string) {
     await this.assertUsernameUnique(username);
-    await this.users.partialUpdateOne({ _id:userid }, { username:username });
+    await this.users.partialUpdateOne({ _id }, { username:username });
     return { msg: "Username updated successfully!" };
   }
 
@@ -124,6 +133,7 @@ export default class AuthenticatingConcept {
     await this.users.deleteOne({ _id });
     return { msg: "User deleted!" };
   }
+
 
   private async assertUsernameUnique(username: string) {
     if (await this.users.readOne({ username })) {

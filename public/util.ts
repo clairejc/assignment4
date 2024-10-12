@@ -24,7 +24,7 @@ const operations: Operation[] = [
     name: "Create User",
     endpoint: "/api/users",
     method: "POST",
-    fields: { username: "input", password: "input", name: "input", phone: "input", birthday: "input"},
+    fields: { username: "input", password: "input", name: "input", phone: "input", age: "input"},
   },
   {
     name: "Login",
@@ -38,6 +38,8 @@ const operations: Operation[] = [
     method: "POST",
     fields: {},
   },
+
+  //profiles
 
   {
     name: "Update Password",
@@ -54,10 +56,10 @@ const operations: Operation[] = [
   },
 
   {
-    name: "Update Location: City, State",
+    name: "Update Location",
     endpoint: "/api/profiles/location",
     method: "PATCH",
-    fields: { newLocation: "input" },
+    fields: { newCity: "input", newState: "input" },
   },
 
   {
@@ -74,12 +76,28 @@ const operations: Operation[] = [
     fields: {},
   },
 
+  {
+    name: "Get Signed Up Events",
+    endpoint: "/api/profiles/signedup",
+    method: "GET",
+    fields: {},
+  },
+
+  {
+    name: "Get Waitlisted Events",
+    endpoint: "/api/profiles/waitlisted",
+    method: "GET",
+    fields: {},
+  },
+
+
+  //eventhosts
 
   {
     name: "Create Event",
     endpoint: "/api/eventhosts",
     method: "POST",
-    fields: { title: "input", description: "input", date: "input", spots: "input", tags: "input"},
+    fields: { title: "input", description: "input", date: "input", spots: "input"},
   },
 
 
@@ -106,48 +124,267 @@ const operations: Operation[] = [
   },
 
   {
-    name: "Add Event Tags",
+    name: "Add Event Tag (One Word)",
     endpoint: "/api/eventhosts/tags/:id",
     method: "PATCH",
-    fields: { id: "input", tags: "input"},
+    fields: { id: "input", tag: "input"},
   },
 
-
-  // posts (previously included)
+  {
+    name: "Event Signup",
+    endpoint: "/api/eventhosts/signups/:id",
+    method: "PATCH",
+    fields: { id: "input"},
+  },
 
   {
-    name: "Delete Post",
-    endpoint: "/api/posts/:id",
+    name: "Event Waitlist",
+    endpoint: "/api/eventhosts/waitlists/:id",
+    method: "PATCH",
+    fields: { id: "input"},
+  },
+
+  {
+    name: "Event Remove Signup",
+    endpoint: "/api/eventhosts/removesignups/:id",
     method: "DELETE",
-    fields: { id: "input" },
+    fields: { id: "input"},
   },
 
   {
-    name: "Create Post",
-    endpoint: "/api/posts",
+    name: "Event Remove Waitlist",
+    endpoint: "/api/eventhosts/removewaitlists/:id",
+    method: "DELETE",
+    fields: { id: "input"},
+  },
+
+  {
+    name: "Add Event Filter (One Word)",
+    endpoint: "/api/eventhosts/filters/add/:id",
+    method: "PATCH",
+    fields: { filter: "input"},
+  },
+
+
+  {
+    name: "Remove Event Filter (One Word)",
+    endpoint: "/api/eventhosts/filters/remove/:id",
+    method: "DELETE",
+    fields: { filter: "input"},
+  },
+
+  {
+    name: "Reset Event Filters",
+    endpoint: "/api/eventhosts/filters/reset/:id",
+    method: "DELETE",
+    fields: {},
+  },
+
+
+
+  //friending
+
+  {
+    name: "Create FriendshipHub Profile",
+    endpoint: "/api/friend/profile",
     method: "POST",
-    fields: { content: "input" },
+    fields: { bio: "input", genderPronouns: "input"},
   },
 
   {
-    name: "Get Users (empty for all)",
-    endpoint: "/api/users/:username",
-    method: "GET",
-    fields: { username: "input" },
+    name: "Update FriendshipHub Profile",
+    endpoint: "/api/friend/profile",
+    method: "PATCH",
+    fields: { bio: "input", genderPronouns: "input"},
   },
+
   {
-    name: "Get Posts (empty for all)",
-    endpoint: "/api/posts",
+    name: "Delete FriendshipHub Profile",
+    endpoint: "/api/friend/profile",
+    method: "DELETE",
+    fields: { },
+  },
+
+  {
+    name: "Add Friendship Interest (One Word)",
+    endpoint: "/api/friend/profile/addinterest",
+    method: "PATCH",
+    fields: { interest: "input" },
+  },
+
+  {
+    name: "Remove Friendship Interest (One Word)",
+    endpoint: "/api/friend/profile/removeinterest",
+    method: "DELETE",
+    fields: { interest: "input" },
+  },
+
+  {
+    name: "Get Compatible Friends",
+    endpoint: "/api/friend/profile/compatible",
     method: "GET",
-    fields: { author: "input" },
+    fields: { },
+  },
+
+  {
+    name: "Send Friend Request",
+    endpoint: "/api/friend/sendrequest/:to_id",
+    method: "POST",
+    fields: { to_id: "input", message: "input"},
+  },
+
+  {
+    name: "Accept Friend Request",
+    endpoint: "/api/friend/acceptrequest/:from",
+    method: "PUT",
+    fields: { from_id: "input"},
+  },
+
+  {
+    name: "Reject Friend Request",
+    endpoint: "/api/friend/rejectrequest/:from",
+    method: "PUT",
+    fields: { from_id: "input"},
+  },
+
+  {
+    name: "Remove Sent Friend Request",
+    endpoint: "/api/friend/removerequest/:to",
+    method: "DELETE",
+    fields: { to_id: "input"},
+  },
+
+  {
+    name: "Get All Request Types",
+    endpoint: "/api/friend/requests",
+    method: "GET",
+    fields: { },
+  },
+
+  {
+    name: "Get Sent Requests",
+    endpoint: "/api/friend/getsentrequests/:to",
+    method: "GET",
+    fields: { },
+  },
+
+  {
+    name: "Get Received Requests",
+    endpoint: "/api/friend/getreceivedrequests",
+    method: "GET",
+    fields: { },
   },
   
   {
-    name: "Update Post",
-    endpoint: "/api/posts/:id",
-    method: "PATCH",
-    fields: { id: "input", content: "input", options: { backgroundColor: "input" } },
+    name: "Get All Friends",
+    endpoint: "/api/friend/getfriends",
+    method: "GET",
+    fields: { },
   },
+
+  {
+    name: "Remove Friendship",
+    endpoint: "/api/friend/removefriend/:to",
+    method: "DELETE",
+    fields: { to: "input"},
+  },
+
+  {
+    name: "Send Message",
+    endpoint: "/api/friend/profile/sendmessage/:to_id",
+    method: "POST",
+    fields: { to_id: "input", content: "input"},
+  },
+
+  {
+    name: "Get Chat Exchange",
+    endpoint: "/api/friend/profile/chat/:to_id",
+    method: "GET",
+    fields: { to_id: "input"},
+  },
+  
+  // settings
+
+  {
+    name: "Get Current Settings",
+    endpoint: "/api/setting",
+    method: "GET",
+    fields: { },
+  },
+
+  {
+    name: "Toggle Instructions Setting",
+    endpoint: "/api/setting/instruction",
+    method: "PATCH",
+    fields: { },
+  },
+
+  {
+    name: "Change Base Color",
+    endpoint: "/api/setting/color",
+    method: "PATCH",
+    fields: { hex: "input"},
+  },
+
+  {
+    name: "Reset Settings",
+    endpoint: "/api/setting",
+    method: "PATCH",
+    fields: { },
+  },
+  
+
+
+
+
+  
+
+
+  
+
+
+
+
+  
+
+
+  
+
+  // posts (previously included)
+
+  // {
+  //   name: "Delete Post",
+  //   endpoint: "/api/posts/:id",
+  //   method: "DELETE",
+  //   fields: { id: "input" },
+  // },
+
+  // {
+  //   name: "Create Post",
+  //   endpoint: "/api/posts",
+  //   method: "POST",
+  //   fields: { content: "input" },
+  // },
+
+  // {
+  //   name: "Get Users (empty for all)",
+  //   endpoint: "/api/users/:username",
+  //   method: "GET",
+  //   fields: { username: "input" },
+  // },
+  // {
+  //   name: "Get Posts (empty for all)",
+  //   endpoint: "/api/posts",
+  //   method: "GET",
+  //   fields: { author: "input" },
+  // },
+  
+  // {
+  //   name: "Update Post",
+  //   endpoint: "/api/posts/:id",
+  //   method: "PATCH",
+  //   fields: { id: "input", content: "input", options: { backgroundColor: "input" } },
+  // },
 
   //
   // ...

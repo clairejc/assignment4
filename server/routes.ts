@@ -2,8 +2,8 @@ import { ObjectId } from "mongodb";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Authing, Friending, Posting, Sessioning, Profiling, EventHosting } from "./app";
-import { PostOptions } from "./concepts/posting";
+import { Authing, Friending, Sessioning, Profiling, EventHosting, Setting } from "./app";
+// import { PostOptions } from "./concepts/posting";
 import { SessionDoc } from "./concepts/sessioning";
 import Responses from "./responses";
 
@@ -35,9 +35,9 @@ class Routes {
   }
 
   @Router.post("/users")
-  async createUser(session: SessionDoc, username: string, password: string, name: string, phone: number, birthday: string) {
+  async createUser(session: SessionDoc, username: string, password: string, name: string, phone: number, age: number) {
     Sessioning.isLoggedOut(session);
-    return await Authing.create(username, password, name, phone, birthday);
+    return await Authing.create(username, password, name, phone, age);
   }
 
   @Router.post("/login")
@@ -68,9 +68,9 @@ class Routes {
   }
 
   @Router.patch("/profiles/location")
-  async updateLocation(session: SessionDoc, newLocation: string) {
+  async updateLocation(session: SessionDoc, newCity: string, newState: string) {
     const user = Sessioning.getUser(session);
-    return Profiling.updateLocation(user, newLocation);
+    return Profiling.updateLocation(user, newCity, newState);
   }
 
   @Router.patch("/profiles/language")
@@ -89,9 +89,9 @@ class Routes {
   //eventhosts:
 
   @Router.post("/eventhosts")
-  async createEvent(session: SessionDoc, title: string, description: string, date: number, spots: number, tags?: string) {
+  async createEvent(session: SessionDoc, title: string, description: string, date: number, spots: number) {
     const user = Sessioning.getUser(session);
-    const created = await EventHosting.create(user, title, description, date, spots, tags);
+    const created = await EventHosting.create(user, title, description, date, spots);
     return { msg: created.msg, post: await Responses.event(created.event) };
   }
 
@@ -124,219 +124,213 @@ class Routes {
   }
 
   @Router.patch("/eventhosts/tags/:id")
-  async addEventTags(session: SessionDoc, id: string, tags: string) {
+  async addEventTag(session: SessionDoc, id: string, tags: string) {
     const user = Sessioning.getUser(session);
     const oid = new ObjectId(id);
     await EventHosting.assertOrganizerIsUser(oid, user);
-    console.log("hiii")
-    return EventHosting.addTags(oid, tags);
+    return EventHosting.addTag(oid, tags);
   }
 
-  //eventviews
-
-  @Router.patch("/eventview/signups")
-  async eventSignup(session: SessionDoc, event: ObjectId) {
-
+  @Router.patch("/eventhosts/signups/:id")
+  async eventSignup(session: SessionDoc, id: string) {
+    const user = Sessioning.getUser(session);
+    const oid = new ObjectId(id);
+    return EventHosting.signup(user, oid);
   }
 
-  @Router.patch("/eventview/waitlists")
-  async eventWaitlist(session: SessionDoc, event: ObjectId) {
-
+  @Router.patch("/eventhosts/waitlists/:id")
+  async eventWaitlist(session: SessionDoc, id: string) {
+    const user = Sessioning.getUser(session);
+    const oid = new ObjectId(id);
+    return EventHosting.waitlist(user, oid);
   }
 
-  @Router.delete("/eventview/signups")
-  async removeSignup(session: SessionDoc, event: ObjectId) {
-
+  @Router.delete("/eventhosts/removesignups/:id")
+  async removeSignup(session: SessionDoc, id: ObjectId) {
+    const user = Sessioning.getUser(session);
+    const oid = new ObjectId(id);
+    return EventHosting.removeSignup(user, oid);
   }
 
-  @Router.delete("/eventview/waitlist")
-  async removeWaitlist(session: SessionDoc, event: ObjectId) {
-
+  @Router.delete("/eventhosts/removewaitlists/:id")
+  async removeWaitlist(session: SessionDoc, id: ObjectId) {
+    const user = Sessioning.getUser(session);
+    const oid = new ObjectId(id);
+    return EventHosting.removeWaitlist(user, oid);
   }
 
-  @Router.patch("/eventview/filters")
+  @Router.patch("/eventhosts/filters/add/:id")
   async addFilter(session: SessionDoc, filter:string) {
-
+    const user = Sessioning.getUser(session);
+    return EventHosting.addFilter(user, filter);
   }
 
-  @Router.delete("/eventview/filters/remove")
-  async removeFilter(session: SessionDoc, organizer: string, filter: string) {
-
+  @Router.delete("/eventhosts/filters/remove/:id")
+  async removeFilter(session: SessionDoc, filter: string) {
+    const user = Sessioning.getUser(session);
+    return EventHosting.removeFilter(user, filter);
   }
 
-  @Router.delete("/eventview/filters/reset")
-  async resetFilters(session: SessionDoc, user: ObjectId){
-
+  @Router.delete("/eventhosts/filters/reset/:id")
+  async resetFilters(session: SessionDoc){
+    const user = Sessioning.getUser(session);
+    return EventHosting.resetFilters(user);
   }
 
-  @Router.patch("/eventview/filters")
-  async sortbyNewest(session: SessionDoc, user: ObjectId) {
-
+  @Router.get("/profiles/signedup")
+  async getSignedup(session: SessionDoc){
+    const user = Sessioning.getUser(session);
+    return Profiling.getSignedup(user);
   }
+
+  @Router.get("/profiles/waitlisted")
+  async getWaitlisted(session: SessionDoc){
+    const user = Sessioning.getUser(session);
+    return Profiling.getWaitlisted(user);
+  }
+
 
   //instruction's actions are static and unchangeable, so they don't need to be recorded outside of a session
-  //and can be included on the page
+  //and can be included on the page in the ui design aspect
   
   // friendshiphub
-  @Router.post("/friendshiphub/profile")
-  async createFriendshipProfile(session: SessionDoc, birthday: number, location: string, genderPronouns: string) {
-  }
-
-  @Router.patch("/users/profile")
-  async editFriendshipProfile(session: SessionDoc, birthday: number, location: string, genderPronouns: string) {
-  }
-
-  @Router.patch("/users/profile/like")
-  async sendLike(session: SessionDoc, toUser: ObjectId) {
-
-  }
-
-  @Router.patch("/users/profile/message")
-  async sendFriendshipMessage(session: SessionDoc, toUser: ObjectId, message: String) {
-    
-  }
-
-  @Router.patch("/users/profile/request")
-  async acceptRequest(session: SessionDoc, toUser: ObjectId) {
-    
-  }
-
-  @Router.delete("/users/profile/request")
-  async rejectRequest(session: SessionDoc, toUser: ObjectId) {
-    
-  }
-
-  // settings 
-  @Router.patch("/users/settings/brightness")
-  async adjustBrightness(session: SessionDoc, level: number){
-
-  }
-
-  @Router.patch("/users/settings/contrast")
-  async adjustContrast(session: SessionDoc, level: number){
-
-  }
-
-  @Router.patch("/users/settings/instruction")
-  async toggleInstruction(session: SessionDoc){
-
-  }
-
-  @Router.patch("/users/settings/textsize")
-  async adjustTextSize(session: SessionDoc, level: number){
-
-  }
-
-  @Router.patch("/users/settings/textread")
-  async toggleTextRead(session: SessionDoc){
-
-  }
-
-  @Router.patch("/users/settings")
-  async resetSettings(session: SessionDoc) {
-
-  }
-
-  //directmessages
-  @Router.patch("/users/directmessages/message")
-  async makePrivateChat(session: SessionDoc, toUser: ObjectId, message: String) {
-    
-  }
-
-  @Router.patch("/users/directmessages/groups")
-  async makeGroupChat(session: SessionDoc, recipients: Array<ObjectId>, message: String) {
-    
-  }
-
-  @Router.patch("/users/directmessages/deleteChat")
-  async deleteChat(session: SessionDoc) {
-
-  }
-
-  //originally existing routes
-  //posts
-
-  @Router.post("/posts")
-  async createPost(session: SessionDoc, content: string, options?: PostOptions) {
+  @Router.post("/friend/profile")
+  async createFriendshipHubProfile(session: SessionDoc, bio: string, genderPronouns: string) {
     const user = Sessioning.getUser(session);
-    const created = await Posting.create(user, content, options);
-    return { msg: created.msg, post: await Responses.post(created.post) };
+    return await Friending.createProfile(user, bio, genderPronouns);
   }
 
-  @Router.get("/posts")
-  @Router.validate(z.object({ author: z.string().optional() }))
-  async getPosts(author?: string) {
-    let posts;
-    if (author) {
-      const id = (await Authing.getUserByUsername(author))._id;
-      posts = await Posting.getByAuthor(id);
-    } else {
-      posts = await Posting.getPosts();
-    }
-    return Responses.posts(posts);
-  }
-
-  @Router.patch("/posts/:id")
-  async updatePost(session: SessionDoc, id: string, content?: string, options?: PostOptions) {
+  @Router.patch("/friend/profile")
+  async updateFriendshipHubProfile(session: SessionDoc, bio?: string, genderPronouns?: string) {
     const user = Sessioning.getUser(session);
-    const oid = new ObjectId(id);
-    await Posting.assertAuthorIsUser(oid, user);
-    return await Posting.update(oid, content, options);
+    return await Friending.updateProfile(user, bio, genderPronouns);
   }
 
-  @Router.delete("/posts/:id")
-  async deletePost(session: SessionDoc, id: string) {
+  @Router.delete("/friend/profile")
+  async deleteFriendshipHubProfile(session: SessionDoc) {
     const user = Sessioning.getUser(session);
-    const oid = new ObjectId(id);
-    await Posting.assertAuthorIsUser(oid, user);
-    return Posting.delete(oid);
+    return await Friending.deleteProfile(user);
   }
 
-  @Router.get("/friends")
-  async getFriends(session: SessionDoc) {
+  @Router.patch("/friend/profile/addinterest")
+  async addFriendInterest(session: SessionDoc, interest: string) {
     const user = Sessioning.getUser(session);
-    return await Authing.idsToUsernames(await Friending.getFriends(user));
+    return await Friending.addInterest(user, interest);
   }
 
-  @Router.delete("/friends/:friend")
-  async removeFriend(session: SessionDoc, friend: string) {
+  @Router.delete("/friend/profile/removeinterest")
+  async removeFriendInterest(session: SessionDoc, interest: string) {
     const user = Sessioning.getUser(session);
-    const friendOid = (await Authing.getUserByUsername(friend))._id;
-    return await Friending.removeFriend(user, friendOid);
+    return await Friending.removeInterest(user, interest);
   }
 
-  @Router.get("/friend/requests")
-  async getRequests(session: SessionDoc) {
+  @Router.get("/friend/profile/compatible")
+  async getCompatibleFriends(session: SessionDoc) {
     const user = Sessioning.getUser(session);
-    return await Responses.friendRequests(await Friending.getRequests(user));
+    return await Friending.getCompatibleFriends(user);
   }
 
-  @Router.post("/friend/requests/:to")
-  async sendFriendRequest(session: SessionDoc, to: string) {
+  @Router.post("/friend/sendrequest/:to")
+  async sendFriendRequest(session: SessionDoc, to: string, message?: string) {
     const user = Sessioning.getUser(session);
-    const toOid = (await Authing.getUserByUsername(to))._id;
-    return await Friending.sendRequest(user, toOid);
+    const toOid = new ObjectId(to);
+    return await Friending.sendRequest(user, toOid, message);
   }
 
-  @Router.delete("/friend/requests/:to")
-  async removeFriendRequest(session: SessionDoc, to: string) {
-    const user = Sessioning.getUser(session);
-    const toOid = (await Authing.getUserByUsername(to))._id;
-    return await Friending.removeRequest(user, toOid);
-  }
-
-  @Router.put("/friend/accept/:from")
+  @Router.put("/friend/acceptrequest/:from")
   async acceptFriendRequest(session: SessionDoc, from: string) {
     const user = Sessioning.getUser(session);
-    const fromOid = (await Authing.getUserByUsername(from))._id;
+    const fromOid = new ObjectId(from);
     return await Friending.acceptRequest(fromOid, user);
   }
 
-  @Router.put("/friend/reject/:from")
+  @Router.put("/friend/rejectrequest/:from")
   async rejectFriendRequest(session: SessionDoc, from: string) {
     const user = Sessioning.getUser(session);
-    const fromOid = (await Authing.getUserByUsername(from))._id;
+    const fromOid = new ObjectId(from);
     return await Friending.rejectRequest(fromOid, user);
+  }
+
+  @Router.delete("/friend/removerequest/:to")
+  async removeFriendRequest(session: SessionDoc, to: string) {
+    const user = Sessioning.getUser(session);
+    const toOid = new ObjectId(to);
+    return await Friending.removeRequest(user, toOid);
+  }
+
+  @Router.get("/friend/requests")
+  async getAllRequests(session: SessionDoc) {
+    const user = Sessioning.getUser(session);
+    return await Responses.friendRequests(await Friending.getAllRequests(user));
+  }
+
+  @Router.get("/friend/getsentrequests/:to")
+  async getSentRequests(session: SessionDoc) {
+    const user = Sessioning.getUser(session);
+    return await Responses.friendRequests(await Friending.sentRequests(user));  
+  }
+
+  @Router.get("/friend/getreceivedrequests")
+  async getReceivedRequests(session: SessionDoc) {
+    const user = Sessioning.getUser(session);
+    return await Responses.friendRequests(await Friending.receivedRequests(user));  
+  }
+
+  @Router.get("/friend/getfriends")
+  async getFriends(session: SessionDoc) {
+    const user = Sessioning.getUser(session);
+    return await Friending.getFriends(user);  
+  }
+
+  @Router.delete("/friend/removefriend/:to")
+  async removeFriend(session: SessionDoc, to: string) {
+    console.log('delete')
+    const user = Sessioning.getUser(session);
+    const toOid = new ObjectId(to);
+    return await Friending.removeFriend(user, toOid);
+  }
+
+  @Router.post("/friend/profile/sendmessage/:to")
+  async sendMessage(session: SessionDoc, to: string, content: string) {
+    const user = Sessioning.getUser(session);
+    const toOid = new ObjectId(to);
+    return await Friending.createMessage(user, toOid, content);
+
+  }
+
+  @Router.get("/friend/profile/chat/:to")
+  async getChatExchange(session: SessionDoc, to: string) {
+    const user = Sessioning.getUser(session);
+    const toOid = new ObjectId(to);
+    return await Friending.getChat(user, toOid);
+  }
+
+
+  // settings 
+
+  @Router.get("/setting")
+  async getCurrentSettings(session: SessionDoc){
+    console.log('here');
+    const user = Sessioning.getUser(session);
+    return await Setting.getCurrentSettings(user);
+  }
+
+  @Router.patch("/setting/instruction")
+  async toggleInstructionsSetting(session: SessionDoc){
+    const user = Sessioning.getUser(session);
+    return await Setting.toggleInstructions(user);
+  }
+
+  @Router.patch("/setting/color")
+  async changeColor(session: SessionDoc, hex: number){
+    const user = Sessioning.getUser(session);
+    return await Setting.changeColor(user, hex);
+  }
+
+  @Router.patch("/setting")
+  async resetSettings(session: SessionDoc) {
+    const user = Sessioning.getUser(session);
+    return await Setting.resetSettings(user);
   }
 
 
