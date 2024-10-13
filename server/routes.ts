@@ -86,13 +86,18 @@ class Routes {
     return await Profiling.delete(user);
   }
 
+  @Router.delete("/profiles/filters/reset")
+  async resetFilters(session: SessionDoc){
+    const user = Sessioning.getUser(session);
+    return await Profiling.clearFilters(user);
+  }
   //eventhosts:
 
   @Router.post("/eventhosts")
   async createEvent(session: SessionDoc, title: string, description: string, date: number, spots: number) {
     const user = Sessioning.getUser(session);
     const created = await EventHosting.create(user, title, description, date, spots);
-    return { msg: created.msg, post: await Responses.event(created.event) };
+    return { msg: created.msg, event: await Responses.event(created.event) };
   }
 
   @Router.delete("/eventhosts/:id")
@@ -113,22 +118,29 @@ class Routes {
     return EventHosting.update(oid, description);
   }
 
+  // @Router.get("/eventhosts/:id")
+  // async getEvents(id: string) {
+  //   console.log("hiii")
+  //   if (!id) {
+  //     return {msg: "Displaying all events", events: await EventHosting.getAllEvents()};
+  //   }
+  //   const userid = await Authing.getIdByUser(id);
+  //   const events = await EventHosting.getByOrganizer(userid);
+  //   return Responses.events(events);
+  // }
+
+
   @Router.get("/eventhosts")
-  async getEvents(organizer: string ) {
-    if (!organizer) {
-      return {msg: "Displaying all events", events: await EventHosting.getAllEvents()};
-    }
-    const userid = await Authing.getIdByUser(organizer);
-    const events = await EventHosting.getByOrganizer(userid);
-    return Responses.events(events);
+  async getAllEvents() {
+    return await EventHosting.getAllEvents();
   }
 
-  @Router.patch("/eventhosts/tags/:id")
-  async addEventTag(session: SessionDoc, id: string, tags: string) {
+  @Router.patch("/eventhosts/addtag/:tag/:id")
+  async addEventTag(session: SessionDoc, id: string, tag: string) {
     const user = Sessioning.getUser(session);
     const oid = new ObjectId(id);
     await EventHosting.assertOrganizerIsUser(oid, user);
-    return EventHosting.addTag(oid, tags);
+    return EventHosting.addTag(oid, tag);
   }
 
   @Router.patch("/eventhosts/signups/:id")
@@ -159,23 +171,18 @@ class Routes {
     return EventHosting.removeWaitlist(user, oid);
   }
 
-  @Router.patch("/eventhosts/filters/add/:id")
+  @Router.patch("/eventhosts/filters/add/:filter")
   async addFilter(session: SessionDoc, filter:string) {
     const user = Sessioning.getUser(session);
+    console.log(filter)
     return EventHosting.addFilter(user, filter);
   }
 
-  @Router.delete("/eventhosts/filters/remove/:id")
-  async removeFilter(session: SessionDoc, filter: string) {
-    const user = Sessioning.getUser(session);
-    return EventHosting.removeFilter(user, filter);
-  }
-
-  @Router.delete("/eventhosts/filters/reset/:id")
-  async resetFilters(session: SessionDoc){
-    const user = Sessioning.getUser(session);
-    return EventHosting.resetFilters(user);
-  }
+  // @Router.delete("/eventhosts/filters/reset")
+  // async resetFilters(session: SessionDoc){
+  //   const user = Sessioning.getUser(session);
+  //   return Profiling.clearFilters(user);
+  // }
 
   @Router.get("/profiles/signedup")
   async getSignedup(session: SessionDoc){
@@ -230,31 +237,31 @@ class Routes {
     return await Friending.getCompatibleFriends(user);
   }
 
-  @Router.post("/friend/sendrequest/:to")
-  async sendFriendRequest(session: SessionDoc, to: string, message?: string) {
+  @Router.post("/friend/sendrequest/:to_id")
+  async sendFriendRequest(session: SessionDoc, to_id: string, message?: string) {
     const user = Sessioning.getUser(session);
-    const toOid = new ObjectId(to);
+    const toOid = new ObjectId(to_id);
     return await Friending.sendRequest(user, toOid, message);
   }
 
-  @Router.put("/friend/acceptrequest/:from")
-  async acceptFriendRequest(session: SessionDoc, from: string) {
+  @Router.put("/friend/acceptrequest/:from_id")
+  async acceptFriendRequest(session: SessionDoc, from_id: string) {
     const user = Sessioning.getUser(session);
-    const fromOid = new ObjectId(from);
+    const fromOid = new ObjectId(from_id);
     return await Friending.acceptRequest(fromOid, user);
   }
 
-  @Router.put("/friend/rejectrequest/:from")
-  async rejectFriendRequest(session: SessionDoc, from: string) {
+  @Router.put("/friend/rejectrequest/:from_id")
+  async rejectFriendRequest(session: SessionDoc, from_id: string) {
     const user = Sessioning.getUser(session);
-    const fromOid = new ObjectId(from);
+    const fromOid = new ObjectId(from_id);
     return await Friending.rejectRequest(fromOid, user);
   }
 
-  @Router.delete("/friend/removerequest/:to")
-  async removeFriendRequest(session: SessionDoc, to: string) {
+  @Router.delete("/friend/removerequest/:to_id")
+  async removeFriendRequest(session: SessionDoc, to_id: string) {
     const user = Sessioning.getUser(session);
-    const toOid = new ObjectId(to);
+    const toOid = new ObjectId(to_id);
     return await Friending.removeRequest(user, toOid);
   }
 
@@ -264,7 +271,7 @@ class Routes {
     return await Responses.friendRequests(await Friending.getAllRequests(user));
   }
 
-  @Router.get("/friend/getsentrequests/:to")
+  @Router.get("/friend/getsentrequests")
   async getSentRequests(session: SessionDoc) {
     const user = Sessioning.getUser(session);
     return await Responses.friendRequests(await Friending.sentRequests(user));  
@@ -282,26 +289,25 @@ class Routes {
     return await Friending.getFriends(user);  
   }
 
-  @Router.delete("/friend/removefriend/:to")
-  async removeFriend(session: SessionDoc, to: string) {
-    console.log('delete')
+  @Router.delete("/friend/removefriend/:to_id")
+  async removeFriend(session: SessionDoc, to_id: string) {
     const user = Sessioning.getUser(session);
-    const toOid = new ObjectId(to);
+    const toOid = new ObjectId(to_id);
     return await Friending.removeFriend(user, toOid);
   }
 
-  @Router.post("/friend/profile/sendmessage/:to")
-  async sendMessage(session: SessionDoc, to: string, content: string) {
+  @Router.post("/friend/profile/sendmessage/:to_id")
+  async sendMessage(session: SessionDoc, to_id: string, content: string) {
     const user = Sessioning.getUser(session);
-    const toOid = new ObjectId(to);
+    const toOid = new ObjectId(to_id);
     return await Friending.createMessage(user, toOid, content);
 
   }
 
-  @Router.get("/friend/profile/chat/:to")
-  async getChatExchange(session: SessionDoc, to: string) {
+  @Router.get("/friend/profile/chat/:to_id")
+  async getChatExchange(session: SessionDoc, to_id: string) {
     const user = Sessioning.getUser(session);
-    const toOid = new ObjectId(to);
+    const toOid = new ObjectId(to_id);
     return await Friending.getChat(user, toOid);
   }
 
@@ -310,7 +316,6 @@ class Routes {
 
   @Router.get("/setting")
   async getCurrentSettings(session: SessionDoc){
-    console.log('here');
     const user = Sessioning.getUser(session);
     return await Setting.getCurrentSettings(user);
   }

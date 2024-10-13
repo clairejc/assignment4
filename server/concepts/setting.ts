@@ -44,12 +44,10 @@ export default class SettingConcept {
     }
     const curInstructions = setting.instructionsOn;
     await this.settings.partialUpdateOne({ userid: userid} , {instructionsOn: !curInstructions})
-    return { msg: "Instructions toggled!", instructionsOn: curInstructions };
+    return { msg: "Instructions toggled!"};
   }
 
   async changeColor(userid: ObjectId, hex: number) {
-    console.log("HIII")
-    console.log(hex)
     if (hex === undefined) {
       throw new NotAllowedError("Hex input is empty. Please provide an input.");
     }

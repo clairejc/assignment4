@@ -169,13 +169,14 @@ export default class ProfilingConcept {
     return profile.filters;
   } 
 
-  async resetFilters (userid: ObjectId) {
+  async clearFilters (userid: ObjectId) {
     const profile = await this.profiles.readOne({ userid:userid });
     if (!profile) {
       throw new NotFoundError("Profile not found");
     }
     await this.profiles.partialUpdateOne({ userid:userid }, {filters: new Array<string>()});
-    return profile.filters;
+    const profileUpdated = await this.profiles.readOne({ userid:userid });
+    return profileUpdated?.filters;
   }
 
   async getSignedup (userid: ObjectId) {

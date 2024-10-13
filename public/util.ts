@@ -90,6 +90,13 @@ const operations: Operation[] = [
     fields: {},
   },
 
+  {
+    name: "Reset Event Filters",
+    endpoint: "/api/profiles/filters/reset",
+    method: "DELETE",
+    fields: {},
+  },
+
 
   //eventhosts
 
@@ -115,17 +122,16 @@ const operations: Operation[] = [
     fields: { id: "input" },
   },
 
-
   {
-    name: "Get Events (empty for all)",
-    endpoint: "/api/eventhosts/",
+    name: "Get All Events",
+    endpoint: "/api/eventhosts",
     method: "GET",
-    fields: { organizer: "input" },
+    fields: { },
   },
 
   {
     name: "Add Event Tag (One Word)",
-    endpoint: "/api/eventhosts/tags/:id",
+    endpoint: "/api/eventhosts/addtag/:tag/:id",
     method: "PATCH",
     fields: { id: "input", tag: "input"},
   },
@@ -145,14 +151,14 @@ const operations: Operation[] = [
   },
 
   {
-    name: "Event Remove Signup",
+    name: "Remove Event Signup",
     endpoint: "/api/eventhosts/removesignups/:id",
     method: "DELETE",
     fields: { id: "input"},
   },
 
   {
-    name: "Event Remove Waitlist",
+    name: "Remove Event Waitlist",
     endpoint: "/api/eventhosts/removewaitlists/:id",
     method: "DELETE",
     fields: { id: "input"},
@@ -160,7 +166,7 @@ const operations: Operation[] = [
 
   {
     name: "Add Event Filter (One Word)",
-    endpoint: "/api/eventhosts/filters/add/:id",
+    endpoint: "/api/eventhosts/filters/add/:filter",
     method: "PATCH",
     fields: { filter: "input"},
   },
@@ -168,17 +174,11 @@ const operations: Operation[] = [
 
   {
     name: "Remove Event Filter (One Word)",
-    endpoint: "/api/eventhosts/filters/remove/:id",
+    endpoint: "/api/eventhosts/filters/remove/:filter",
     method: "DELETE",
     fields: { filter: "input"},
   },
 
-  {
-    name: "Reset Event Filters",
-    endpoint: "/api/eventhosts/filters/reset/:id",
-    method: "DELETE",
-    fields: {},
-  },
 
 
 
@@ -235,21 +235,21 @@ const operations: Operation[] = [
 
   {
     name: "Accept Friend Request",
-    endpoint: "/api/friend/acceptrequest/:from",
+    endpoint: "/api/friend/acceptrequest/:from_id",
     method: "PUT",
     fields: { from_id: "input"},
   },
 
   {
     name: "Reject Friend Request",
-    endpoint: "/api/friend/rejectrequest/:from",
+    endpoint: "/api/friend/rejectrequest/:from_id",
     method: "PUT",
     fields: { from_id: "input"},
   },
 
   {
     name: "Remove Sent Friend Request",
-    endpoint: "/api/friend/removerequest/:to",
+    endpoint: "/api/friend/removerequest/:to_id",
     method: "DELETE",
     fields: { to_id: "input"},
   },
@@ -263,7 +263,7 @@ const operations: Operation[] = [
 
   {
     name: "Get Sent Requests",
-    endpoint: "/api/friend/getsentrequests/:to",
+    endpoint: "/api/friend/getsentrequests",
     method: "GET",
     fields: { },
   },
@@ -284,9 +284,9 @@ const operations: Operation[] = [
 
   {
     name: "Remove Friendship",
-    endpoint: "/api/friend/removefriend/:to",
+    endpoint: "/api/friend/removefriend/:to_id",
     method: "DELETE",
-    fields: { to: "input"},
+    fields: { to_id: "input"},
   },
 
   {

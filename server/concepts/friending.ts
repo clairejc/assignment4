@@ -53,7 +53,8 @@ export default class FriendingConcept {
 
   async createProfile(userid: ObjectId, bio: string, genderPronouns: string) {
     const interests = Array<string>();
-    const profile = await this.profiles.readOne({ userid });
+    const profile = await this.profiles.readOne({ userid:userid });
+    console.log(profile)
     if (profile) {
       throw new NotAllowedError("FriendshipHub profile already exists");
     }
@@ -85,8 +86,8 @@ export default class FriendingConcept {
   }
 
   async deleteProfile(userid: ObjectId) {
-    await this.requests.popOne({ userid });
-    return { msg: "FriendshipHub profile deleted!"}
+    await this.profiles.deleteOne({ userid:userid });
+    return { msg: "FriendshipHub profile deleted!",}
   }
 
   async addInterest(userid: ObjectId, interest: string) {
